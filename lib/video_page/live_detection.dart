@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
-import './boundary_box.dart';
+import 'boundary_box.dart';
 
 class FaceDetectionFromLiveCamera extends StatefulWidget {
   @override
@@ -31,21 +31,6 @@ class _FaceDetectionFromLiveCameraState
     cameraController?.dispose();
     super.dispose();
   }
-
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state){
-  //   if(cameraController==null || !cameraController.value.isInitialized){
-  //     return;
-  //   }
-  //   if(state==AppLifecycleState.inactive){
-  //     cameraController?.dispose();
-  //   }
-  //   else if(state==AppLifecycleState.resumed){
-  //     if(cameraController!=null){
-  //     }
-  //   }
-  // }
-  //
 
   Future<void> _getAvailableCameras() async {
     WidgetsFlutterBinding.ensureInitialized();
