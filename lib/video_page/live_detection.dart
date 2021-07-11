@@ -12,10 +12,10 @@ class FaceDetectionFromLiveCamera extends StatefulWidget {
 
 class _FaceDetectionFromLiveCameraState
     extends State<FaceDetectionFromLiveCamera> {
-  List<CameraDescription> _availableCameras;
-  CameraController cameraController;
+  List<CameraDescription>? _availableCameras;
+  CameraController? cameraController;
   bool isDetecting = false;
-  List<dynamic> _recognitions;
+  List<dynamic>? _recognitions;
   int _imageHeight = 0;
   int _imageWidth = 0;
   bool front = true;
@@ -35,7 +35,7 @@ class _FaceDetectionFromLiveCameraState
   Future<void> _getAvailableCameras() async {
     WidgetsFlutterBinding.ensureInitialized();
     _availableCameras = await availableCameras();
-    _initializeCamera(_availableCameras[1]);
+    _initializeCamera(_availableCameras![1]);
   }
 
   void loadModel() async {
@@ -48,18 +48,18 @@ class _FaceDetectionFromLiveCameraState
   Future<void> _initializeCamera(CameraDescription description) async {
     cameraController = CameraController(description, ResolutionPreset.high);
     try {
-      await cameraController.initialize().then(
-        (_) {
+      await cameraController?.initialize().then(
+            (_) {
           if (!mounted) {
             return;
           }
-          cameraController.startImageStream(
-            (CameraImage img) {
+          cameraController?.startImageStream(
+                (CameraImage img) {
               if (!isDetecting) {
                 isDetecting = true;
                 Tflite.runModelOnFrame(
                   bytesList: img.planes.map(
-                    (plane) {
+                        (plane) {
                       return plane.bytes;
                     },
                   ).toList(),
@@ -69,7 +69,7 @@ class _FaceDetectionFromLiveCameraState
                   imageWidth: img.width,
                   numResults: 1,
                 ).then(
-                  (recognitions) {
+                      (recognitions) {
                     setRecognitions(recognitions, img.height, img.width);
                     isDetecting = false;
                   },
@@ -87,14 +87,14 @@ class _FaceDetectionFromLiveCameraState
 
   void _toggleCameraLens() {
     // get current lens direction (front / rear)
-    final lensDirection = cameraController.description.lensDirection;
+    final lensDirection = cameraController?.description.lensDirection;
     CameraDescription newDescription;
     if (lensDirection == CameraLensDirection.front) {
-      newDescription = _availableCameras.firstWhere((description) =>
-          description.lensDirection == CameraLensDirection.back);
+      newDescription = _availableCameras!.firstWhere((description) =>
+      description.lensDirection == CameraLensDirection.back);
     } else {
-      newDescription = _availableCameras.firstWhere((description) =>
-          description.lensDirection == CameraLensDirection.front);
+      newDescription = _availableCameras!.firstWhere((description) =>
+      description.lensDirection == CameraLensDirection.front);
     }
 
     if (newDescription != null) {
@@ -119,40 +119,41 @@ class _FaceDetectionFromLiveCameraState
       constraints: const BoxConstraints.expand(),
       child: cameraController == null
           ? Container(
-              alignment: Alignment.center,
-              child: CircularProgressIndicator(),
-            )
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(),
+      )
           : Scaffold(
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  front == true ? front = false : front = true;
-                  _toggleCameraLens();
-                },
-                child: Icon(
-                    front == true ? Icons.camera_rear : Icons.camera_front),
-              ),
-              appBar: AppBar(
-                title: Text("Dog breed classifier"),
-                centerTitle: true,
-              ),
-              body: Stack(
-                children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: cameraController.value.aspectRatio,
-                      child: CameraPreview(cameraController),
-                    ),
-                  ),
-                  BoundaryBox(
-                      _recognitions == null ? [] : _recognitions,
-                      math.max(_imageHeight, _imageWidth),
-                      math.min(_imageHeight, _imageWidth),
-                      screen.height,
-                      screen.width,
-                  ),
-                ],
-              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            front == true ? front = false : front = true;
+            _toggleCameraLens();
+          },
+          child: Icon(
+              front == true ? Icons.camera_rear : Icons.camera_front),
+        ),
+        appBar: AppBar(
+          title: Text("Dog breed classifier"),
+          centerTitle: true,
+        ),
+        body: Stack(
+          children: [
+            Center(
+              // child: AspectRatio(
+              //   aspectRatio: cameraController!.value.aspectRatio,
+              //   child: CameraPreview(cameraController!),
+              // ),
+              child: CameraPreview(cameraController!),
             ),
+            BoundaryBox(
+              _recognitions ??= [],
+              math.max(_imageHeight, _imageWidth),
+              math.min(_imageHeight, _imageWidth),
+              screen.height,
+              screen.width,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

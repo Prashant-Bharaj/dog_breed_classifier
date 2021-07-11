@@ -16,9 +16,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _loading;
-  List _outputs;
-  File _image;
+  late bool _loading;
+  List? _outputs;
+  File? _image;
 
   void initState() {
     super.initState();
@@ -37,26 +37,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future pickImage() async {
     var image = await ImagePicker().getImage(source: ImageSource.gallery);
-    if (image == null) return null;
     setState(() {
       _loading = true;
       //Declare File _image in the class which is used to display the image on the screen.
-      _image = File(image.path);
+      _image = File(image!.path);
     });
     var output = await Tflite.runModelOnImage(
-      path: File(image.path).path,
+      path: File(image!.path).path,
       numResults: 1,
-      threshold: 0.5,
+      threshold: 0.0,
       imageMean: 127.5,
       imageStd: 127.5,
     );
     setState(() {
       _loading = false;
       //Declare List _outputs in the class which will be used to show the classified classs name and confidence
-      _outputs = output;
+      _outputs = output!;
     });
   }
-
+  GlobalKey key = GlobalKey();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,28 +78,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   _image == null
                       ? Container()
-                      : Image.file(_image,
+                      : Image.file(_image!,
                           fit: BoxFit.contain,
                           height: MediaQuery.of(context).size.height * 0.6),
                   SizedBox(
                     height: 10,
                   ),
-                  _outputs != null
+                  (_outputs != null && _outputs!.length > 0)
                       ? Column(
                           children: <Widget>[
                             Text(
-                              "${_outputs[0]["label"]}",
+                              "${_outputs![0]["label"]}",
                               style: TextStyle(
                                 fontSize: 25.0,
                               ),
                             ),
                             Text(
-                              "${(_outputs[0]["confidence"] * 100).toStringAsFixed(0)}%",
+                              "${(_outputs![0]["confidence"] * 100).toStringAsFixed(0)}%",
                               style: TextStyle(fontSize: 20),
-                            )
+                            ),
                           ],
                         )
-                      : FirstPage(),
+                      : FirstPage(key: key,),
                 ],
               ),
             ),

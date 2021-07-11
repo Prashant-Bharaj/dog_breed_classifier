@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class FirstPage extends StatelessWidget {
   const FirstPage({
-    Key key,
+    required Key key,
   }) : super(key: key);
 
   @override
