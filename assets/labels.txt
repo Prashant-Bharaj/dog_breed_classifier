@@ -53,6 +53,7 @@ great_dane
 great_pyrenees
 greater_swiss_mountain_dog
 groenendael
+human_being
 ibizan_hound
 irish_setter
 irish_terrier

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite/tflite.dart';
@@ -19,6 +21,8 @@ class _FaceDetectionFromLiveCameraState
   int _imageHeight = 0;
   int _imageWidth = 0;
   bool front = true;
+  var breedFreq = HashMap<String, int>();
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +74,7 @@ class _FaceDetectionFromLiveCameraState
                   numResults: 1,
                 ).then(
                       (recognitions) {
+                        // breedFreq[recognitions![0]["breed"]]= ((breedFreq[recognitions[0]["breed"]]==null) ? 1: breedFreq[recognitions[0]["breed"]++])!;
                     setRecognitions(recognitions, img.height, img.width);
                     isDetecting = false;
                   },
