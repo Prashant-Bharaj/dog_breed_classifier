@@ -1,3 +1,6 @@
+import 'package:dog_breed_classifier/authentication.dart';
+import 'package:dog_breed_classifier/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
@@ -67,6 +70,23 @@ Drawer buildDrawer() {
             ),
             onTap: () {
               launch('https://github.com/prashant-bharaj');
+            },
+          ),
+          Divider(
+            height: 3,
+          ),
+          ListTile(
+            title: Text(
+              'LOGOUT',
+              style: TextStyle(
+                fontSize: 20,
+              ),
+            ),
+            leading: Icon(
+              Icons.logout,
+            ),
+            onTap: () {
+              FirebaseAuth.instance.signOut();
             },
           ),
           Divider(
