@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
 
-import 'widgets.dart';
-
+import '../Widgets/widgets.dart';
 
 enum ApplicationLoginState {
   loggedOut,
@@ -55,21 +56,27 @@ class Authentication extends StatelessWidget {
             title: Text("Dog Hub"),
             centerTitle: true,
           ),
-          body: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, bottom: 8),
-                  child: StyledButton(
-                    onPressed: () {
-                      startLoginFlow();
-                    },
-                    child: const Text('SIGN IN TO DOG HUB'),
+          body: Center(
+            child: StyledButton(
+              onPressed: () {
+                startLoginFlow();
+              },
+              child: Center(
+                child: Material(
+                  elevation: 8.0,
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(18.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: const Text(
+                      'SIGN IN TO DOG HUB',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+                    ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         );
       case ApplicationLoginState.emailAddress:
@@ -104,19 +111,19 @@ class Authentication extends StatelessWidget {
           },
         );
       case ApplicationLoginState.loggedIn:
-      return  Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 24, bottom: 8),
-            child: StyledButton(
-              onPressed: () {
-                signOut();
-              },
-              child: const Text('LOGOUT'),
+        return Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 24, bottom: 8),
+              child: StyledButton(
+                onPressed: () {
+                  signOut();
+                },
+                child: const Text('LOGOUT'),
+              ),
             ),
-          ),
-        ],
-      );
+          ],
+        );
       default:
         return Row(
           children: const [
@@ -177,7 +184,7 @@ class _EmailFormState extends State<EmailForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dog breed classifier"),
+        title: Text("Dog Hub"),
         centerTitle: true,
       ),
       body: Column(
@@ -265,7 +272,7 @@ class _RegisterFormState extends State<RegisterForm> {
         title: Text("Dog Hub"),
         centerTitle: true,
       ),
-        body: Column(
+      body: Column(
         children: [
           const Header('Create account'),
           Padding(
@@ -339,8 +346,6 @@ class _RegisterFormState extends State<RegisterForm> {
                                 _displayNameController.text,
                                 _passwordController.text,
                               );
-
-
                             }
                           },
                           child: const Text('SAVE'),
@@ -360,24 +365,24 @@ class _RegisterFormState extends State<RegisterForm> {
 }
 
 CollectionReference usersRef = FirebaseFirestore.instance.collection('users');
+
 class AddUser {
   final String? uid;
   final String? displayName;
   final String? email;
   AddUser({required this.uid, required this.email, required this.displayName});
-    Future<void> addUser() {
-
-      return usersRef.doc(uid).set({
-        'uid':uid,
-        'display_name': displayName,
-        'email': email,
-      })
-          .then((value) => print("User Added"))
-          .catchError((e) => print("Failed to add user: $e"));
-    }
+  Future<void> addUser() {
+    return usersRef
+        .doc(uid)
+        .set({
+          'uid': uid,
+          'name': displayName,
+          'email': email,
+        })
+        .then((value) => print("User Added"))
+        .catchError((e) => print("Failed to add user: $e"));
+  }
 }
-
-
 
 class PasswordForm extends StatefulWidget {
   const PasswordForm({
@@ -404,7 +409,10 @@ class _PasswordFormState extends State<PasswordForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Dog Hub'),centerTitle: true,),
+      appBar: AppBar(
+        title: Text('Dog Hub'),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           const Header('Sign in'),
@@ -447,7 +455,7 @@ class _PasswordFormState extends State<PasswordForm> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.only(top: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -467,11 +475,109 @@ class _PasswordFormState extends State<PasswordForm> {
                       ],
                     ),
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ResetScreen(
+                                      emailController: _emailController,
+                                    ))),
+                        child: Text("forget password"),
+                      )
+                    ],
+                  )
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ResetScreen extends StatefulWidget {
+  final TextEditingController? emailController;
+  // ResetScreen(this._emailController);
+  const ResetScreen({Key? key, this.emailController}) : super(key: key);
+
+  @override
+  _ResetScreenState createState() => _ResetScreenState();
+}
+
+class _ResetScreenState extends State<ResetScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(child: Text("Dog Hub")),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.01,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: TextFormField(
+                controller: widget.emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter your email',
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Enter your email address to continue';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.01,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Material(
+                  elevation: 1.0,
+                  borderRadius: BorderRadius.circular(1.0),
+                  child: TextButton(
+                    onPressed: ()  {
+                      if (widget.emailController != null)
+                        {
+                          FirebaseAuth.instance.sendPasswordResetEmail(
+                              email: widget.emailController!.text);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("reset mail sent to your email"),
+                          ));
+                        }
+                      else
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("please write valid email"),
+                            ),
+                          );
+                        }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Send reset email",
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

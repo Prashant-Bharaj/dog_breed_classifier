@@ -1,16 +1,16 @@
 import 'package:dog_breed_classifier/image_page/image_detection.dart';
-import 'package:dog_breed_classifier/widgets.dart';
+import 'package:dog_breed_classifier/Widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'application_state.dart';
-import 'authentication.dart';
-import 'home.dart';
+import 'authentication/application_state.dart';
+import 'authentication/authentication.dart';
+import 'uploadui/home.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // new
 import 'package:firebase_core/firebase_core.dart'; // new
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart'; // new
 
 import 'firebase_options.dart';
-import 'home_page.dart'; // new
+import 'authentication/home_page.dart'; // new
 
 void main() {
   runApp(

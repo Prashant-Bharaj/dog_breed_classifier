@@ -6,7 +6,7 @@ import 'package:tflite/tflite.dart';
 import 'dart:async';
 import 'dart:io';
 
-import '../first_page.dart';
+import '../utility/first_page.dart';
 
 class ImageDetectionPage extends StatefulWidget {
   const ImageDetectionPage({Key? key}) : super(key: key);
@@ -108,7 +108,7 @@ class _ImageDetectionPageState extends State<ImageDetectionPage> {
     return Scaffold(
       // drawer: buildDrawer(),
       appBar: AppBar(
-        title: Text("Dog breed classifier"),
+        title: Text("Dog Hub"),
         centerTitle: true,
       ),
       floatingActionButton:  FloatingActionButton.extended(

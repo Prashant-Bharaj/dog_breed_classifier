@@ -1,6 +1,7 @@
-import 'package:dog_breed_classifier/authentication.dart';
+import 'package:dog_breed_classifier/authentication/authentication.dart';
 import 'package:dog_breed_classifier/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
@@ -13,15 +14,23 @@ Drawer buildDrawer() {
         children: <Widget>[
           DrawerHeader(
             decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage("assets/dog.jpg"), fit: BoxFit.cover),
+              color: Colors.black,
+              // image: DecorationImage(
+              //     image: AssetImage("assets/dog.jpg"), fit: BoxFit.cover),
             ),
             child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Dog breed classifier',
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                )),
+              alignment: Alignment.center,
+              child: Text(
+                'Dog Hub',
+                style: GoogleFonts.lato(
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ),
           ListTile(
             title: Text(

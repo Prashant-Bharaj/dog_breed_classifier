@@ -8,7 +8,7 @@ class HeartAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return showHeart
+    return showHeart==true
         ? Animator(
             duration: Duration(milliseconds: 300),
             tween: Tween(begin: 0.8, end: 1.4),

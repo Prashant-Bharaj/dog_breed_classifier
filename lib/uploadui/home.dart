@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geocoding/geocoding.dart';
@@ -10,12 +12,13 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
-import 'Widgets/post.dart';
-import 'application_state.dart';
-import 'left_drawer.dart';
-import 'models/user.dart';
-import 'video_page/live_detection.dart';
-
+import '../Widgets/post.dart';
+import '../authentication/application_state.dart';
+import '../drawer/left_drawer.dart';
+import '../models/user.dart';
+import '../video_page/live_detection.dart';
+import 'package:permission_handler/permission_handler.dart';
+bool triggerRefresh = false;
 final DateTime timestamp = DateTime.now();
 final postsRef = FirebaseFirestore.instance.collection('posts');
 final commentsRef = FirebaseFirestore.instance.collection('comments');
@@ -43,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: buildDrawer(),
       appBar: AppBar(
-        title: Text("Dog breed classifier"),
+        title: Text("Dog Hub"),
         centerTitle: true,
         actions: [
           Container(
@@ -60,8 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
           )),
           SizedBox(
             width: 12,
-          )
+          ),
         ],
+
       ),
 
       // floatingActionButton: buildFloatingBar(context),
@@ -79,13 +83,15 @@ class _MyHomePageState extends State<MyHomePage> {
               break;
           }
         },
+
         items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.image), label: "Select image"),
+              icon: Icon(Icons.image), label: "Scan dog breed with image"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.camera), label: "Select camera"),
+              icon: Icon(Icons.camera), label: "Scan dog breed with video"),
         ],
       ),
+
       body: TimeLine(),
     );
   }
@@ -148,31 +154,37 @@ class _UploadState extends State<Upload> {
     );
   }
 
-  Container buildSplashScreen() {
-    return Container(
-      // color: Theme.of(context).accentColor.withOpacity(0.6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(top: 20.0),
-            child: ElevatedButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18.0),
+  buildSplashScreen() {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Dog Hub"),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Material(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.blue
+                  : Colors.black45,
+              elevation: 18.0,
+              borderRadius: BorderRadius.circular(18.0),
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: TextButton(
+                  onPressed: () => selectImage(context),
+                  child: Text(
+                    "Upload Image",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28.0,
                     ),
                   ),
                 ),
-                child: Text(
-                  "Upload Image",
-                  style: TextStyle(
-                    fontSize: 22.0,
-                  ),
-                ),
-                onPressed: () => selectImage(context)),
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -204,18 +216,22 @@ class _UploadState extends State<Upload> {
     return downloadUrl;
   }
 
+  Map<String, int> mapoflike = new HashMap();
+
   createPostInFirestore(
       {required String mediaUrl,
       required String location,
       required String description}) {
+    // mapoflike.putIfAbsent("", () => null)
     postsRef
-        .doc(widget.currentUser?.uid)
+        .doc(currentUser?.uid)
         // .currentUser.id)
         .collection("userPosts")
         .doc(postId)
         .set({
+      "name": FirebaseAuth.instance.currentUser?.displayName,
       "postId": postId,
-      "ownerId": widget.currentUser?.uid,
+      "ownerId": currentUser?.uid,
       "mediaUrl": mediaUrl,
       "description": description,
       "location": location,
@@ -262,8 +278,10 @@ class _UploadState extends State<Upload> {
             child: Text(
               "Post",
               style: TextStyle(
-                // color: Colors.blueAccent,
-                fontWeight: FontWeight.bold,
+                color: Theme.of(context).brightness != Brightness.dark
+                    ? Colors.white
+                    : Colors.blue,
+                // fontWeight: FontWeight.bold,
                 fontSize: 20.0,
               ),
             ),
@@ -311,7 +329,7 @@ class _UploadState extends State<Upload> {
               child: TextField(
                 controller: captionController,
                 decoration: InputDecoration(
-                  hintText: "Write a caption...",
+                  hintText: "Enter breed name",
                   border: InputBorder.none,
                 ),
               ),
@@ -365,20 +383,29 @@ class _UploadState extends State<Upload> {
   }
 
   getUserLocation() async {
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    // List<Placemark> placemarks = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
-    // await Geolocator.;
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
-    Placemark placemark = placemarks[0];
-    String completeAddress =
-        '${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.subLocality} ${placemark.locality}, ${placemark.subAdministrativeArea}, ${placemark.administrativeArea} ${placemark.postalCode}, ${placemark.country}';
-    print(completeAddress);
-    String formattedAddress = "${placemark.locality}, ${placemark.country}";
-    setState(() {
-      locationController.text = formattedAddress;
-    });
+    await Permission.location.request();
+    if (await Permission.location.isDenied) {
+      openAppSettings();
+    }
+
+    if (await Permission.location.request().isGranted) {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      Placemark placemark = placemarks[0];
+      String completeAddress =
+          '${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.subLocality} ${placemark.locality}, ${placemark.subAdministrativeArea}, ${placemark.administrativeArea} ${placemark.postalCode}, ${placemark.country}';
+      // print(completeAddress);
+      String formattedAddress = "${placemark.locality}, ${placemark.country}";
+      setState(() {
+        print(formattedAddress);
+        locationController.text = formattedAddress;
+      });
+    } else {
+      print(await Permission.location.request().isGranted);
+    }
   }
 
   bool get wantKeepAlive => true;
@@ -403,49 +430,22 @@ class _TimeLineState extends State<TimeLine> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getAllPosts();
+    // getAllPosts();
+    getTimeline();
   }
 
-  getAllPosts() async {
-    print("get all posts called");
-
-    // QuerySnapshot snapshot = await FirebaseFirestore.instance.collection(
-    //     "posts")
-    //     .doc(currentUser?.uid)
-    //     .collection('userPosts')
-    //     .orderBy('timestamp', descending: true)
-    //     .get();
-    List listOfKeys = [];
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection("posts").get();
-    snapshot.docs.forEach((element) {
-      listOfKeys.add(element.toString());
-    });
-
-    // print(snapshot.docs.);
+  getTimeline() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection("timeline")
+        .orderBy('timestamp', descending: true)
+        .get();
+    List<Post> posts =
+        snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
     setState(() {
-      print("****************************************\n\n\n");
-      for (var i in listOfKeys) print(i);
-      print("****************************************\n\n\n");
-      List<Post> posts = snapshot.docs
-          .map((doc) => Post.fromDocument(doc))
-          .toList(growable: true);
       this.posts = posts;
     });
   }
 
-  // getTimeline() async {
-  //   QuerySnapshot snapshot = await timelineRef
-  //       .doc(user?.uid)
-  //       .collection('timelinePosts')
-  //       .orderBy('timestamp', descending: true)
-  //       .get();
-  //   List<Post> posts =
-  //   snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
-  //   setState(() {
-  //     this.posts = posts;
-  //   });
-  // }
   //TODO: implement if user don't have anything in the timeline
   buildTimeLine() {
     if (posts == null) {
@@ -467,9 +467,14 @@ class _TimeLineState extends State<TimeLine> {
 
   @override
   Widget build(BuildContext context) {
+    if(triggerRefresh){
+      triggerRefresh = false;
+      // getTimeline();
+    }
+
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () => getAllPosts(),
+        onRefresh: () => getTimeline(),
         child: buildTimeLine(),
       ),
     );

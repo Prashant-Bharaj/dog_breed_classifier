@@ -137,7 +137,7 @@ class _FaceDetectionFromLiveCameraState
               front == true ? Icons.camera_rear : Icons.camera_front),
         ),
         appBar: AppBar(
-          title: Text("Dog breed classifier"),
+          title: Text("Dog Hub"),
           centerTitle: true,
         ),
         body: Stack(

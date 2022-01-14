@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1043798375951",
+    "project_id": "dog-hub-c7908",
+    "storage_bucket": "dog-hub-c7908.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043798375951:android:5c2773046333f1d9c2ad7a",
+        "android_client_info": {
+          "package_name": "com.blogspot.psbapplications.dog_breed_classifier"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1043798375951-64no4dvuv68v7i779fommgpgu4tvdm6p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.blogspot.psbapplications.dog_breed_classifier",
+            "certificate_hash": "4e9115e967855d6b484c21ec411630376c0910a8"
+          }
+        },
+        {
+          "client_id": "1043798375951-lur5i8ovidv4mbblf9qp953i5j5mhek7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcjMOA3oV1I1KM7SXQrScBKfvOtqZuMd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1043798375951-lur5i8ovidv4mbblf9qp953i5j5mhek7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
