@@ -1,3 +1,4 @@
+import 'package:dog_breed_classifier/themeManager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,7 +7,8 @@ import 'authentication.dart';
 import '../uploadui/home.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final ThemeNotifier theme;
+  const HomePage({Key? key, required this.theme}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class HomePage extends StatelessWidget {
       body: Consumer<ApplicationState>(
         //Navigator.pushReplacementNamed(context, '/HomeScreen')
         builder: (context, appState, _) => (
-            appState.loginState == ApplicationLoginState.loggedIn) ? MyHomePage() : Authentication(
+            appState.loginState == ApplicationLoginState.loggedIn) ? MyHomePage(theme) : Authentication(
           email: appState.email,
           loginState: appState.loginState,
           startLoginFlow: appState.startLoginFlow,

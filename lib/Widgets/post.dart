@@ -94,13 +94,7 @@ class _PostState extends State<Post> {
         FirestoreUser user = FirestoreUser.fromDocument(snapshot.data as DocumentSnapshot);
         bool isPostOwner = currentUserId == ownerId;
         return ListTile(
-          // leading: CircleAvatar(
-          //   //TODO: add photo url of user
-          //   backgroundImage: CachedNetworkImageProvider("https://placedog.net/50"),
-          //   // backgroundColor: Colors.grey,
-          // ),
           title: GestureDetector(
-            // onTap: () => showProfile(context, profileId: user.uid),
             child: Text(
               user.name??"",
               style: TextStyle(
@@ -358,7 +352,8 @@ class _PostState extends State<Post> {
       children: <Widget>[
         buildPostHeader(),
         buildPostImage(),
-        buildPostFooter()
+        buildPostFooter(),
+        Divider(),
       ],
     );
   }

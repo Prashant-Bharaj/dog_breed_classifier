@@ -1,23 +1,31 @@
 import 'dart:collection';
 
+import 'package:dog_breed_classifier/image_page/image_detection.dart';
+import 'package:dog_breed_classifier/storageManager.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_share/flutter_share.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as Im;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tflite/tflite.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import '../Widgets/post.dart';
 import '../authentication/application_state.dart';
-import '../drawer/left_drawer.dart';
 import '../models/user.dart';
+import '../themeManager.dart';
 import '../video_page/live_detection.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+bool isDark= StorageManager.readData.toString() == "dark";
 bool triggerRefresh = false;
 final DateTime timestamp = DateTime.now();
 final postsRef = FirebaseFirestore.instance.collection('posts');
@@ -30,11 +38,31 @@ void getCurrentUser() {
 }
 
 class MyHomePage extends StatefulWidget {
+  ThemeNotifier? theme;
+  MyHomePage(ThemeNotifier theme) {
+    this.theme = theme;
+  }
+
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState(theme);
+}
+
+Future<void> share() async {
+  await FlutterShare.share(
+      title: 'Hey,I found out a great app!',
+      text:
+          'Use this app to detect the breed of dog in photos. This app is really awesome.',
+      linkUrl:
+          'https://play.google.com/store/apps/details?id=com.psb.dogbreedclassifier',
+      chooserTitle: 'Hey,I found out a great app!');
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  ThemeNotifier? theme;
+  _MyHomePageState(ThemeNotifier? theme) {
+    this.theme = theme;
+  }
+
   @override
   void initState() {
     getCurrentUser();
@@ -44,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: buildDrawer(),
+      drawer: buildDrawer(theme!),
       appBar: AppBar(
         title: Text("Dog Hub"),
         centerTitle: true,
@@ -65,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> {
             width: 12,
           ),
         ],
-
       ),
 
       // floatingActionButton: buildFloatingBar(context),
@@ -73,17 +100,23 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: (value) {
           switch (value) {
             case 0:
-              Navigator.pushNamed(context, '/ImageDetectionPage');
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ImageDetectionPage()));
               break;
             case 1:
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (BuildContext context) {
-                return FaceDetectionFromLiveCamera();
-              }));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return FaceDetectionFromLiveCamera();
+                  },
+                ),
+              );
               break;
           }
         },
-
         items: [
           BottomNavigationBarItem(
               icon: Icon(Icons.image), label: "Scan dog breed with image"),
@@ -93,6 +126,126 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       body: TimeLine(),
+    );
+  }
+
+  Drawer buildDrawer(ThemeNotifier theme) {
+    return Drawer(
+      child: Container(
+        child: ListView(
+          padding: EdgeInsets.only(top: 20),
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.black,
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  'Dog Hub',
+                  style: GoogleFonts.lato(
+                    textStyle: TextStyle(
+                      color: Colors.white,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            ListTile(
+              title: Text(isDark ? "Dark Mode" : "Light Mode",
+                  style: TextStyle(fontSize: 20)),
+              leading: isDark ? Icon(Icons.dark_mode) : Icon(Icons.light_mode),
+              trailing: Switch(
+                value: isDark,
+                onChanged: (bool value) {
+                  setState(
+                    () {
+                      isDark = value;
+                      isDark ? theme.setDarkMode() : theme.setLightMode();
+                    },
+                  );
+                },
+              ),
+            ),
+
+            Divider(
+              height: 3,
+            ),
+            ListTile(
+              title: Text(
+                'Share with your friends',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              leading: Icon(
+                Icons.share,
+              ),
+              onTap: () {
+                share();
+              },
+            ),
+            Divider(
+              height: 3,
+            ),
+            ListTile(
+              title: Text(
+                'Rate the app',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              leading: Icon(
+                Icons.star,
+              ),
+              onTap: () {
+                launch(
+                    'https://play.google.com/store/apps/details?id=com.psb.dogbreedclassifier');
+              },
+            ),
+            Divider(
+              height: 3,
+            ),
+            ListTile(
+              title: Text(
+                'About the developer',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              leading: Icon(
+                Icons.developer_mode,
+              ),
+              onTap: () {
+                launch('https://github.com/prashant-bharaj');
+              },
+            ),
+            Divider(
+              height: 3,
+            ),
+            ListTile(
+              title: Text(
+                'LOGOUT',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              leading: Icon(
+                Icons.logout,
+              ),
+              onTap: () {
+                FirebaseAuth.instance.signOut();
+              },
+            ),
+            Divider(
+              height: 3,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -119,16 +272,32 @@ class _UploadState extends State<Upload> {
       maxHeight: 675,
       maxWidth: 960,
     ));
+    var output = await Tflite.runModelOnImage(
+      path: File(file!.path).path,
+      numResults: 1,
+      threshold: 0.0,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
     setState(() {
-      this.file = File(file!.path);
+      this.file = File(file.path);
+      this.captionController.text = output![0];
     });
   }
 
   handleChooseFromGallery() async {
     Navigator.pop(context);
     var file = (await ImagePicker().pickImage(source: ImageSource.gallery));
+    var output = await Tflite.runModelOnImage(
+      path: File(file!.path).path,
+      numResults: 1,
+      threshold: 0.0,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
     setState(() {
-      this.file = File(file!.path);
+      this.file = File(file.path);
+      this.captionController.text = output![0]["label"].toString();
     });
   }
 
@@ -222,13 +391,7 @@ class _UploadState extends State<Upload> {
       {required String mediaUrl,
       required String location,
       required String description}) {
-    // mapoflike.putIfAbsent("", () => null)
-    postsRef
-        .doc(currentUser?.uid)
-        // .currentUser.id)
-        .collection("userPosts")
-        .doc(postId)
-        .set({
+    postsRef.doc(currentUser?.uid).collection("userPosts").doc(postId).set({
       "name": FirebaseAuth.instance.currentUser?.displayName,
       "postId": postId,
       "ownerId": currentUser?.uid,
@@ -320,10 +483,6 @@ class _UploadState extends State<Upload> {
             padding: EdgeInsets.only(top: 10.0),
           ),
           ListTile(
-            // leading: CircleAvatar(
-            //   backgroundImage:
-            //   CachedNetworkImageProvider(widget.currentUser?.photoUrl??""),
-            // ),
             title: Container(
               width: 250.0,
               child: TextField(
@@ -430,7 +589,6 @@ class _TimeLineState extends State<TimeLine> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    // getAllPosts();
     getTimeline();
   }
 
@@ -467,9 +625,8 @@ class _TimeLineState extends State<TimeLine> {
 
   @override
   Widget build(BuildContext context) {
-    if(triggerRefresh){
+    if (triggerRefresh) {
       triggerRefresh = false;
-      // getTimeline();
     }
 
     return Scaffold(
@@ -478,5 +635,19 @@ class _TimeLineState extends State<TimeLine> {
         child: buildTimeLine(),
       ),
     );
+  }
+}
+
+class CustomDrawer extends StatefulWidget {
+  const CustomDrawer({Key? key}) : super(key: key);
+
+  @override
+  _CustomDrawerState createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
